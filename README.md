@@ -1,14 +1,15 @@
-###### Soil Moisture Project
+# Soil Moisture Project
 
-#### BY:
+## BY:
 
 ### Agam, Anish, Sehej, Subhan
 
+#### Now Open Souce!!!!
 
-## THE PLAN (trademark)
+##### THE PLAN (trademark)
 
 
-# Tools that we have right now:
+###### Tools that we have right now:
 
 - Arduino Mega 2560 Rev3
 - Soil Moisture Sensor
