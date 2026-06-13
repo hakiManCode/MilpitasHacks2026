@@ -147,9 +147,9 @@ const sim = SIMULATE
   : null;
 if (sim) sim.start();
 
-if (process.env.VERCEL_ENV) {
-  export default app;
-} else {
+export default app;
+
+if (!process.env.VERCEL_ENV) {
   app.listen(PORT, () => {
     console.log(`\n  Haven (calm app)   → http://localhost:${PORT}`);
     console.log(`  Insights dashboard → http://localhost:${PORT}/dashboard`);

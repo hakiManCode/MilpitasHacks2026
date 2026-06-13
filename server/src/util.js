@@ -22,6 +22,8 @@ export function bandStress(x, lo, hi, soft) {
 }
 
 // Local hour-of-day (0..24, fractional) for a timestamp in ms.
+// Uses the system/local timezone so server/client timestamps align with the
+// user's configured timezone when rendering time-of-day signals.
 export function hourOfDay(ts) {
   const d = new Date(ts);
   return d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600;

@@ -164,7 +164,16 @@ function fmtEta(hours) {
   return `~${(hours / 24).toFixed(1)} days`;
 }
 function fmtClock(ts) {
-  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Default to 12-hour clock; user can toggle to 24-hour by clicking the clock.
+  const hour12 = !clockPref24();
+  return new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12 });
+}
+
+function clockPref24() {
+  try { return localStorage.getItem('restcue-clock24') === '1'; } catch (e) { return false; }
+}
+function setClockPref24(v) {
+  try { localStorage.setItem('restcue-clock24', v ? '1' : '0'); } catch (e) {}
 }
 
 const tempNote = (t) => t == null ? ['', ''] :
@@ -227,8 +236,24 @@ function render(s) {
   badge.textContent = live ? 'LIVE' : 'DEMO';
   badge.className = 'badge ' + (live ? 'badge-live' : 'badge-sim');
   $('chartClock').textContent = s.now ? fmtClock(s.now) : '';
+  lastNow = s.now;
+  const cEl = $('chartClock');
+  if (cEl) cEl.classList.toggle('clock-24', clockPref24());
   if (s.simSpeed && !live) $('speedNote').textContent = `demo clock · ${s.simSpeed}× speed`;
   else if (live) $('speedNote').textContent = 'live hardware feed';
+}
+
+// Allow user to toggle clock format by clicking the clock (12h default → 24h)
+const _chartClock = $('chartClock');
+if (_chartClock) {
+  _chartClock.style.cursor = 'pointer';
+  _chartClock.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const cur = clockPref24();
+    setClockPref24(!cur);
+    _chartClock.textContent = lastNow ? fmtClock(lastNow) : '';
+    _chartClock.classList.toggle('clock-24', !cur);
+  });
 }
 
 function buildSummary(s) {

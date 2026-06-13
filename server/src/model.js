@@ -29,6 +29,7 @@ const CFG = {
   SLEEP: {
     bias: -0.6,
     circadian: 3.2, // time of day dominates
+    evening: 2.5, // extra weight for evening winding-down (≈19:00–24:00)
     humidityRising: 1.4, // closed room: breathing raises humidity
     airWorsening: 1.5, // closed room: VOC/CO2 build up, gas resistance drops
     coolStable: 1.1, // cool + steady temperature
@@ -114,6 +115,12 @@ export class BurnoutModel {
     dist = Math.min(dist, 24 - dist);
     const night = Math.exp(-(dist * dist) / (2 * 4 * 4)); // sigma ≈ 4h → 0..1
 
+    // Evening "winding down" bump centred on ~21:00 (9pm).
+    // This helps the app recognise realistic evening sleep onset (≈19:00–24:00).
+    let ed = Math.abs(hour - 21);
+    ed = Math.min(ed, 24 - ed);
+    const evening = Math.exp(-(ed * ed) / (2 * 2 * 2)); // sigma ≈ 2h → stronger between 19–24
+
     const humRise = clamp(this.trend('humidity') / 4, 0, 1); // +4 %RH/hr → full signal
     const airWorse = clamp(-this.trend('gas') / 60000, 0, 1); // gas dropping fast → enclosed
     const coolStable = r.temperature != null
@@ -123,6 +130,7 @@ export class BurnoutModel {
 
     const z = S.bias
       + S.circadian * (night - 0.5)
+      + S.evening * evening
       + S.humidityRising * humRise
       + S.airWorsening * airWorse
       + S.coolStable * coolStable
