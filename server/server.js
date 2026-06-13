@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { Store } from './src/store.js';
 import { BurnoutModel } from './src/model.js';
 import { Simulator } from './src/simulator.js';
+import { buildGuidance } from './src/guidance.js';
 import { clamp, num } from './src/util.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -22,6 +23,19 @@ let lastHardwareAt = 0;
 const app = express();
 app.use(express.json({ limit: '64kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Single page (public/index.html) hosts both the calm "Haven" view and the
+// technical "Insights" dashboard, switched via the #insights hash.
+// Keep the old /dashboard URL working by redirecting to that view.
+app.get('/dashboard', (req, res) => res.redirect('/#insights'));
+
+// Attach the calm "guidance" layer (gentle phrases + reading-driven tips) that
+// the Haven front-end consumes. The technical dashboard ignores it and uses the
+// raw model fields.
+function decorate(state) {
+  if (state) state.guidance = buildGuidance(state);
+  return state;
+}
 
 // ── live client fan-out (Server-Sent Events) ───────────────────────────────
 const clients = new Set();
@@ -56,6 +70,7 @@ function ingest(body, { fromHardware = false } = {}) {
   store.addReading(reading);
   const state = model.update(reading, { effort: userEffort });
   state.simSpeed = SIM_SPEED;
+  decorate(state);
   store.savePersisted(model.serialize());
   broadcast(state);
   return state;
@@ -74,14 +89,14 @@ app.post('/api/ingest', (req, res) => {
 app.post('/api/effort', (req, res) => {
   userEffort = clamp(num(req.body?.effort, userEffort), 0, 100);
   const latest = store.latest();
-  if (latest) broadcast(model.snapshot(latest, { effort: userEffort }));
+  if (latest) broadcast(decorate(model.snapshot(latest, { effort: userEffort })));
   res.json({ ok: true, effort: userEffort });
 });
 
 app.get('/api/state', (req, res) => {
   const latest = store.latest();
   res.json({
-    state: latest ? model.snapshot(latest, { effort: userEffort }) : null,
+    state: latest ? decorate(model.snapshot(latest, { effort: userEffort })) : null,
     effort: userEffort,
     simRunning: sim?.running ?? false,
   });
@@ -111,7 +126,7 @@ app.get('/api/stream', (req, res) => {
   clients.add(res);
 
   const latest = store.latest();
-  if (latest) res.write(`data: ${JSON.stringify(model.snapshot(latest, { effort: userEffort }))}\n\n`);
+  if (latest) res.write(`data: ${JSON.stringify(decorate(model.snapshot(latest, { effort: userEffort })))}\n\n`);
 
   const keepAlive = setInterval(() => res.write(': ping\n\n'), 20000);
   req.on('close', () => {
@@ -133,6 +148,7 @@ const sim = SIMULATE
 if (sim) sim.start();
 
 app.listen(PORT, () => {
-  console.log(`\n  Breakpoint server → http://localhost:${PORT}`);
+  console.log(`\n  Haven (calm app)   → http://localhost:${PORT}`);
+  console.log(`  Insights dashboard → http://localhost:${PORT}/dashboard`);
   console.log(`  Simulator: ${sim ? `ON (${SIM_SPEED}× speed)` : 'OFF'}  ·  POST readings to /api/ingest\n`);
 });

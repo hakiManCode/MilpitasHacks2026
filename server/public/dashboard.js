@@ -32,10 +32,10 @@ function fitCanvas(canvas) {
 }
 
 function strainColor(v) {
-  if (v < 40) return '#4ade80';
-  if (v < 70) return '#fbbf24';
+  if (v < 40) return '#2fb574';
+  if (v < 70) return '#f5a623';
   if (v < 88) return '#fb923c';
-  return '#f87171';
+  return '#ef5e57';
 }
 
 // Smooth-ish polyline with optional gradient fill underneath.
@@ -95,7 +95,7 @@ function drawGauge(strain) {
   // track
   ctx.beginPath();
   ctx.arc(cx, cy, r, start, start + sweep);
-  ctx.strokeStyle = '#222838';
+  ctx.strokeStyle = '#e8ecf4';
   ctx.lineWidth = 14;
   ctx.lineCap = 'round';
   ctx.stroke();
@@ -114,16 +114,16 @@ function drawMainChart() {
   const { ctx, w, h } = fitCanvas(canvas);
   ctx.clearRect(0, 0, w, h);
   // gridlines for strain 0/50/100
-  ctx.strokeStyle = '#20263a';
+  ctx.strokeStyle = '#eef1f7';
   ctx.lineWidth = 1;
   for (const frac of [0, 0.5, 1]) {
     const yy = 6 + (1 - frac) * (h - 12);
     ctx.beginPath(); ctx.moveTo(6, yy); ctx.lineTo(w - 6, yy); ctx.stroke();
   }
   // sleep probability (0..1) as soft violet fill behind
-  drawSeries(ctx, w, h, hist.sleepProb, { color: '#a78bfa', min: 0, max: 1, fill: true, width: 1.5 });
+  drawSeries(ctx, w, h, hist.sleepProb, { color: '#8b7ff0', min: 0, max: 1, fill: true, width: 1.5 });
   // strain (0..100) on top
-  drawSeries(ctx, w, h, hist.strain, { color: '#fbbf24', min: 0, max: 100, width: 2.4 });
+  drawSeries(ctx, w, h, hist.strain, { color: '#f5a623', min: 0, max: 100, width: 2.4 });
 }
 
 function spark(id, vals, color) {
@@ -144,10 +144,10 @@ function pushPress(v) {
 function redrawAll() {
   drawGauge(lastStrain);
   drawMainChart();
-  spark('spTemp', hist.temperature, '#5eead4');
-  spark('spHum', hist.humidity, '#60a5fa');
-  spark('spAir', hist.airScore, '#4ade80');
-  spark('spPress', pressBuf, '#c4b5fd');
+  spark('spTemp', hist.temperature, '#f7894e');
+  spark('spHum', hist.humidity, '#4f86f0');
+  spark('spAir', hist.airScore, '#2fb574');
+  spark('spPress', pressBuf, '#8b7ff0');
 }
 
 // ── formatting ──────────────────────────────────────────────────────────────
@@ -265,10 +265,10 @@ function renderDrivers(drivers, recovering, sleepRecovery) {
   $('driverList').innerHTML = positives.map((d) => {
     const pct = Math.round(d.share * 100);
     const wpct = Math.round((d.value / max) * 100);
-    const color = d.key === 'effort' ? '#5eead4'
-      : d.key === 'air' ? '#4ade80'
+    const color = d.key === 'effort' ? '#4f56e0'
+      : d.key === 'air' ? '#2fb574'
       : d.key === 'temp' ? '#fb923c'
-      : d.key === 'humidity' ? '#60a5fa' : '#c4b5fd';
+      : d.key === 'humidity' ? '#4f86f0' : '#8b7ff0';
     return `<li><span class="dname">${d.label}</span>
       <span class="dbar"><i style="width:${wpct}%;background:${color}"></i></span>
       <span class="dpct">${pct}%</span></li>`;
@@ -339,7 +339,8 @@ async function init() {
   } catch { /* ignore */ }
   await backfill();
   redrawAll();
-  connect();
+  // ?static renders one snapshot without the live stream (embeds / screenshots).
+  if (!new URLSearchParams(location.search).has('static')) connect();
 }
 
 window.addEventListener('resize', () => requestAnimationFrame(redrawAll));

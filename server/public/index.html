@@ -3,114 +3,214 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Breakpoint — know your limit before you hit it</title>
-  <link rel="preconnect" href="" />
-  <link rel="stylesheet" href="styles.css" />
+  <title>RestCue Website Version</title>
+  <meta name="description" content="A calm companion that gently helps you find your balance." />
+  <!-- Both themes are loaded; only one is enabled at a time (see the inline
+       script below) so the two very different designs never collide. -->
+  <link rel="stylesheet" href="haven.css" id="css-haven" />
+  <link rel="stylesheet" href="dashboard.css" id="css-dash" />
+  <script>
+    // Pre-paint: enable the right stylesheet immediately to avoid a flash.
+    (function () {
+      var dash = location.hash === '#insights';
+      document.getElementById('css-haven').disabled = dash;
+      document.getElementById('css-dash').disabled = !dash;
+    })();
+  </script>
 </head>
-<body>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="logo" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="34" height="34">
-            <path d="M5 22 L13 22 L17 7 L21 25 L25 14 L31 14" fill="none"
-                  stroke="url(#g)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-            <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#f87171"/>
-            </linearGradient></defs>
-          </svg>
-        </div>
-        <div>
-          <h1>Breakpoint</h1>
-          <p class="tag">100% effort, 100% of the time, breaks. We tell you when.</p>
-        </div>
+<body class="haven">
+
+  <!-- ════════════════ CALM VIEW (Haven) ════════════════ -->
+  <div id="haven-view">
+    <div class="wrap">
+      <header class="bar">
+        <div class="word">Haven<span class="dotmark">.</span></div>
+        <nav class="nav">
+          <span class="live" id="live" title="data source"><i></i><span id="liveText">demo</span></span>
+          <a class="ins" href="#insights">Insights</a>
+        </nav>
+      </header>
+
+      <main class="stage">
+        <section class="orb-area">
+          <div class="orb" id="orb"></div>
+          <div class="phrase">
+            <h1 id="headline">Settling in…</h1>
+            <p class="sub" id="sub">Reading your space.</p>
+          </div>
+        </section>
+
+        <section class="suggest" id="suggest">
+          <div class="suggest-icon" id="sgIcon" aria-hidden="true"></div>
+          <div class="suggest-body">
+            <h2 id="sgTitle">A moment for you</h2>
+            <p id="sgText">Take it at your own pace.</p>
+            <p id="sgAside" class="aside" hidden></p>
+          </div>
+          <button class="cta" id="sgCta" hidden>Begin</button>
+        </section>
+
+        <section class="space">
+          <h3 class="section-label">Your space</h3>
+          <div class="space-grid" id="spaceGrid"></div>
+        </section>
+
+        <section class="checkin">
+          <h3 class="section-label">A gentle check-in</h3>
+          <label for="load" class="checkin-q">How heavy does today feel?</label>
+          <input id="load" type="range" min="0" max="100" value="60" aria-label="how heavy today feels" />
+          <div class="checkin-legend"><span>Light</span><span>A lot</span></div>
+        </section>
+
+        <section class="breathe-cta">
+          <button class="ghost" id="openBreath">Take a moment to breathe</button>
+        </section>
+      </main>
+
+      <footer class="foot">Haven — a calmer space, gently guided.</footer>
+    </div>
+
+    <!-- guided breathing -->
+    <div class="breath-overlay" id="breathOverlay" hidden>
+      <button class="breath-close" id="breathClose">Finish</button>
+      <div class="breath-stage">
+        <div class="breath-orb" id="breathOrb"><span class="breath-count" id="breathCount">4</span></div>
+        <div class="breath-label" id="breathLabel">Breathe in</div>
+        <div class="breath-meta" id="breathMeta">Box breathing</div>
       </div>
-      <div class="status">
-        <span id="srcBadge" class="badge badge-sim">DEMO</span>
-        <span id="conn" class="conn"><i class="dot"></i>connecting…</span>
-      </div>
-    </header>
-
-    <main class="grid">
-      <!-- HERO -->
-      <section class="card hero">
-        <div class="gauge-wrap">
-          <canvas id="gauge" class="gauge"></canvas>
-          <div class="gauge-center">
-            <div id="strainVal" class="big">--</div>
-            <div class="unit">% strain</div>
-          </div>
-        </div>
-        <div class="hero-text">
-          <div class="eyebrow">Predicted breaking point</div>
-          <div id="etaVal" class="eta">—</div>
-          <p id="summary" class="summary">Waiting for the first reading…</p>
-          <div class="mini-stats">
-            <div><span id="dailyNet">—</span><label>net strain / day</label></div>
-            <div><span id="envMult">—</span><label>environment load</label></div>
-            <div><span id="airVal">—</span><label>air quality</label></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- SLEEP -->
-      <section class="card sleep" id="sleepCard">
-        <div class="card-head"><h2>Sleep state</h2><span id="sleepPct" class="pct">—</span></div>
-        <div id="sleepState" class="sleep-state">—</div>
-        <div class="track">
-          <div id="sleepBar" class="track-fill"></div>
-          <span class="track-tick" style="left:35%"></span>
-          <span class="track-tick" style="left:65%"></span>
-        </div>
-        <div class="track-legend"><span>Awake</span><span>Winding down</span><span>Asleep</span></div>
-        <ul id="sleepSignals" class="signals"></ul>
-      </section>
-
-      <!-- EFFORT -->
-      <section class="card effort">
-        <div class="card-head"><h2>Today's effort</h2><span id="effortVal" class="pct">70%</span></div>
-        <input id="effort" type="range" min="0" max="100" value="70" aria-label="effort level" />
-        <div class="effort-legend"><span>Coasting</span><span>Sustainable</span><span>All-out</span></div>
-        <p class="hint">How hard are you pushing right now? Higher effort burns strain faster — the environment decides how much faster.</p>
-      </section>
-
-      <!-- ENVIRONMENT -->
-      <section class="card env">
-        <div class="card-head"><h2>Environment</h2><span id="comfort" class="pct">—</span></div>
-        <div class="env-grid">
-          <div class="tile"><div class="tile-top"><span class="tile-label">Temperature</span><span class="tile-val" id="vTemp">—</span></div><canvas class="spark" id="spTemp"></canvas><div class="tile-note" id="nTemp"></div></div>
-          <div class="tile"><div class="tile-top"><span class="tile-label">Humidity</span><span class="tile-val" id="vHum">—</span></div><canvas class="spark" id="spHum"></canvas><div class="tile-note" id="nHum"></div></div>
-          <div class="tile"><div class="tile-top"><span class="tile-label">Air quality</span><span class="tile-val" id="vAir">—</span></div><canvas class="spark" id="spAir"></canvas><div class="tile-note" id="nAir"></div></div>
-          <div class="tile"><div class="tile-top"><span class="tile-label">Pressure</span><span class="tile-val" id="vPress">—</span></div><canvas class="spark" id="spPress"></canvas><div class="tile-note" id="nPress"></div></div>
-        </div>
-      </section>
-
-      <!-- STRAIN CHART -->
-      <section class="card chart-card">
-        <div class="card-head">
-          <h2>Strain &amp; sleep over time</h2>
-          <div class="legend">
-            <span class="lg lg-strain">strain</span>
-            <span class="lg lg-sleep">sleep</span>
-            <span id="chartClock" class="muted"></span>
-          </div>
-        </div>
-        <canvas id="strainChart" class="chart"></canvas>
-      </section>
-
-      <!-- DRIVERS -->
-      <section class="card drivers">
-        <div class="card-head"><h2>What's driving your strain</h2></div>
-        <ul id="driverList" class="driver-list"></ul>
-        <p class="hint" id="recoveryNote"></p>
-      </section>
-    </main>
-
-    <footer class="foot">
-      <span>Breakpoint · ESP32 + Adafruit BME688</span>
-      <span id="speedNote" class="muted"></span>
-    </footer>
+    </div>
   </div>
-  <script src="app.js"></script>
+
+  <!-- ════════════════ INSIGHTS VIEW (Breakpoint dashboard) ════════════════ -->
+  <div id="dash-view" hidden>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="34" height="34">
+              <path d="M5 22 L13 22 L17 7 L21 25 L25 14 L31 14" fill="none"
+                    stroke="url(#g)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#f87171"/>
+              </linearGradient></defs>
+            </svg>
+          </div>
+          <div>
+            <h1>Breakpoint</h1>
+            <p class="tag">100% effort, 100% of the time, breaks. We tell you when.</p>
+          </div>
+        </div>
+        <div class="status">
+          <span id="srcBadge" class="badge badge-sim">DEMO</span>
+          <span id="conn" class="conn"><i class="dot"></i>connecting…</span>
+        </div>
+      </header>
+
+      <main class="grid">
+        <!-- HERO -->
+        <section class="card hero">
+          <div class="gauge-wrap">
+            <canvas id="gauge" class="gauge"></canvas>
+            <div class="gauge-center">
+              <div id="strainVal" class="big">--</div>
+              <div class="unit">% strain</div>
+            </div>
+          </div>
+          <div class="hero-text">
+            <div class="eyebrow">Predicted breaking point</div>
+            <div id="etaVal" class="eta">—</div>
+            <p id="summary" class="summary">Waiting for the first reading…</p>
+            <div class="mini-stats">
+              <div><span id="dailyNet">—</span><label>net strain / day</label></div>
+              <div><span id="envMult">—</span><label>environment load</label></div>
+              <div><span id="airVal">—</span><label>air quality</label></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SLEEP -->
+        <section class="card sleep" id="sleepCard">
+          <div class="card-head"><h2>Sleep state</h2><span id="sleepPct" class="pct">—</span></div>
+          <div id="sleepState" class="sleep-state">—</div>
+          <div class="track">
+            <div id="sleepBar" class="track-fill"></div>
+            <span class="track-tick" style="left:35%"></span>
+            <span class="track-tick" style="left:65%"></span>
+          </div>
+          <div class="track-legend"><span>Awake</span><span>Winding down</span><span>Asleep</span></div>
+          <ul id="sleepSignals" class="signals"></ul>
+        </section>
+
+        <!-- EFFORT -->
+        <section class="card effort">
+          <div class="card-head"><h2>Today's effort</h2><span id="effortVal" class="pct">70%</span></div>
+          <input id="effort" type="range" min="0" max="100" value="70" aria-label="effort level" />
+          <div class="effort-legend"><span>Coasting</span><span>Sustainable</span><span>All-out</span></div>
+          <p class="hint">How hard are you pushing right now? Higher effort burns strain faster — the environment decides how much faster.</p>
+        </section>
+
+        <!-- ENVIRONMENT -->
+        <section class="card env">
+          <div class="card-head"><h2>Environment</h2><span id="comfort" class="pct">—</span></div>
+          <div class="env-grid">
+            <div class="tile"><div class="tile-top"><span class="tile-label">Temperature</span><span class="tile-val" id="vTemp">—</span></div><canvas class="spark" id="spTemp"></canvas><div class="tile-note" id="nTemp"></div></div>
+            <div class="tile"><div class="tile-top"><span class="tile-label">Humidity</span><span class="tile-val" id="vHum">—</span></div><canvas class="spark" id="spHum"></canvas><div class="tile-note" id="nHum"></div></div>
+            <div class="tile"><div class="tile-top"><span class="tile-label">Air quality</span><span class="tile-val" id="vAir">—</span></div><canvas class="spark" id="spAir"></canvas><div class="tile-note" id="nAir"></div></div>
+            <div class="tile"><div class="tile-top"><span class="tile-label">Pressure</span><span class="tile-val" id="vPress">—</span></div><canvas class="spark" id="spPress"></canvas><div class="tile-note" id="nPress"></div></div>
+          </div>
+        </section>
+
+        <!-- STRAIN CHART -->
+        <section class="card chart-card">
+          <div class="card-head">
+            <h2>Strain &amp; sleep over time</h2>
+            <div class="legend">
+              <span class="lg lg-strain">strain</span>
+              <span class="lg lg-sleep">sleep</span>
+              <span id="chartClock" class="muted"></span>
+            </div>
+          </div>
+          <canvas id="strainChart" class="chart"></canvas>
+        </section>
+
+        <!-- DRIVERS -->
+        <section class="card drivers">
+          <div class="card-head"><h2>What's driving your strain</h2></div>
+          <ul id="driverList" class="driver-list"></ul>
+          <p class="hint" id="recoveryNote"></p>
+        </section>
+      </main>
+
+      <footer class="foot">
+        <span>Breakpoint · ESP32 + Adafruit BME688 · <a href="#calm" style="color:inherit">← Calm view</a></span>
+        <span id="speedNote" class="muted"></span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- view switcher: toggles which theme is active + which view is shown -->
+  <script>
+    (function () {
+      var cssHaven = document.getElementById('css-haven');
+      var cssDash = document.getElementById('css-dash');
+      var havenView = document.getElementById('haven-view');
+      var dashView = document.getElementById('dash-view');
+      function setView(showDash) {
+        cssHaven.disabled = showDash;
+        cssDash.disabled = !showDash;
+        havenView.hidden = showDash;
+        dashView.hidden = !showDash;
+        document.title = 'RestCue Website Version';
+        // the dashboard's canvases need a resize tick once they're visible
+        if (showDash) requestAnimationFrame(function () { window.dispatchEvent(new Event('resize')); });
+      }
+      window.addEventListener('hashchange', function () { setView(location.hash === '#insights'); });
+      setView(location.hash === '#insights');
+    })();
+  </script>
+
+  <!-- both scripts are ES modules → their top-level names are scoped and won't collide -->
+  <script type="module" src="haven.js"></script>
+  <script type="module" src="dashboard.js"></script>
 </body>
 </html>
