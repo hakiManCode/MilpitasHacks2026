@@ -1,0 +1,13 @@
+# dependencies
+node_modules/
+
+# runtime state (strain history, persisted model)
+server/data/*.json
+
+# firmware secrets — never commit WiFi creds / server URL
+firmware/**/config.h
+
+# editor / OS
+.DS_Store
+*.log
+.vscode/

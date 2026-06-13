@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Breakpoint — know your limit before you hit it</title>
+  <link rel="preconnect" href="" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="34" height="34">
+            <path d="M5 22 L13 22 L17 7 L21 25 L25 14 L31 14" fill="none"
+                  stroke="url(#g)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#f87171"/>
+            </linearGradient></defs>
+          </svg>
+        </div>
+        <div>
+          <h1>Breakpoint</h1>
+          <p class="tag">100% effort, 100% of the time, breaks. We tell you when.</p>
+        </div>
+      </div>
+      <div class="status">
+        <span id="srcBadge" class="badge badge-sim">DEMO</span>
+        <span id="conn" class="conn"><i class="dot"></i>connecting…</span>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- HERO -->
+      <section class="card hero">
+        <div class="gauge-wrap">
+          <canvas id="gauge" class="gauge"></canvas>
+          <div class="gauge-center">
+            <div id="strainVal" class="big">--</div>
+            <div class="unit">% strain</div>
+          </div>
+        </div>
+        <div class="hero-text">
+          <div class="eyebrow">Predicted breaking point</div>
+          <div id="etaVal" class="eta">—</div>
+          <p id="summary" class="summary">Waiting for the first reading…</p>
+          <div class="mini-stats">
+            <div><span id="dailyNet">—</span><label>net strain / day</label></div>
+            <div><span id="envMult">—</span><label>environment load</label></div>
+            <div><span id="airVal">—</span><label>air quality</label></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLEEP -->
+      <section class="card sleep" id="sleepCard">
+        <div class="card-head"><h2>Sleep state</h2><span id="sleepPct" class="pct">—</span></div>
+        <div id="sleepState" class="sleep-state">—</div>
+        <div class="track">
+          <div id="sleepBar" class="track-fill"></div>
+          <span class="track-tick" style="left:35%"></span>
+          <span class="track-tick" style="left:65%"></span>
+        </div>
+        <div class="track-legend"><span>Awake</span><span>Winding down</span><span>Asleep</span></div>
+        <ul id="sleepSignals" class="signals"></ul>
+      </section>
+
+      <!-- EFFORT -->
+      <section class="card effort">
+        <div class="card-head"><h2>Today's effort</h2><span id="effortVal" class="pct">70%</span></div>
+        <input id="effort" type="range" min="0" max="100" value="70" aria-label="effort level" />
+        <div class="effort-legend"><span>Coasting</span><span>Sustainable</span><span>All-out</span></div>
+        <p class="hint">How hard are you pushing right now? Higher effort burns strain faster — the environment decides how much faster.</p>
+      </section>
+
+      <!-- ENVIRONMENT -->
+      <section class="card env">
+        <div class="card-head"><h2>Environment</h2><span id="comfort" class="pct">—</span></div>
+        <div class="env-grid">
+          <div class="tile"><div class="tile-top"><span class="tile-label">Temperature</span><span class="tile-val" id="vTemp">—</span></div><canvas class="spark" id="spTemp"></canvas><div class="tile-note" id="nTemp"></div></div>
+          <div class="tile"><div class="tile-top"><span class="tile-label">Humidity</span><span class="tile-val" id="vHum">—</span></div><canvas class="spark" id="spHum"></canvas><div class="tile-note" id="nHum"></div></div>
+          <div class="tile"><div class="tile-top"><span class="tile-label">Air quality</span><span class="tile-val" id="vAir">—</span></div><canvas class="spark" id="spAir"></canvas><div class="tile-note" id="nAir"></div></div>
+          <div class="tile"><div class="tile-top"><span class="tile-label">Pressure</span><span class="tile-val" id="vPress">—</span></div><canvas class="spark" id="spPress"></canvas><div class="tile-note" id="nPress"></div></div>
+        </div>
+      </section>
+
+      <!-- STRAIN CHART -->
+      <section class="card chart-card">
+        <div class="card-head">
+          <h2>Strain &amp; sleep over time</h2>
+          <div class="legend">
+            <span class="lg lg-strain">strain</span>
+            <span class="lg lg-sleep">sleep</span>
+            <span id="chartClock" class="muted"></span>
+          </div>
+        </div>
+        <canvas id="strainChart" class="chart"></canvas>
+      </section>
+
+      <!-- DRIVERS -->
+      <section class="card drivers">
+        <div class="card-head"><h2>What's driving your strain</h2></div>
+        <ul id="driverList" class="driver-list"></ul>
+        <p class="hint" id="recoveryNote"></p>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span>Breakpoint · ESP32 + Adafruit BME688</span>
+      <span id="speedNote" class="muted"></span>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
