@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+// Optional Firestore persistence (lazy-loaded when USE_FIRESTORE=true)
 
 // In-memory ring buffer of sensor readings + a tiny JSON persistence layer so
 // accumulated strain survives a server restart. Swap for SQLite later if needed.
@@ -10,6 +11,33 @@ export class Store {
     this.dataDir = dataDir;
     this.stateFile = dataDir ? path.join(dataDir, 'state.json') : null;
     this._saveTimer = null;
+    this._useFirestore = process.env.USE_FIRESTORE === 'true';
+    this._fireInit = null;
+    this._fireRef = null;
+    if (this._useFirestore) {
+      // lazy init Firestore in background; failures silently disable it
+      this._fireInit = (async () => {
+        try {
+          const adminMod = await import('firebase-admin');
+          const admin = adminMod.default ?? adminMod;
+          if (!admin.apps || !admin.apps.length) {
+            if (process.env.FIREBASE_ADMIN_SA) {
+              const sa = JSON.parse(process.env.FIREBASE_ADMIN_SA);
+              admin.initializeApp({ credential: admin.credential.cert(sa) });
+            } else {
+              admin.initializeApp();
+            }
+          }
+          this._firestore = admin.firestore();
+          const docPath = process.env.FIRESTORE_DOC_PATH || 'restcue/model_state';
+          const parts = docPath.split('/');
+          // ensure doc path like collection/doc
+          this._fireRef = this._firestore.doc(parts.join('/'));
+        } catch (e) {
+          this._useFirestore = false;
+        }
+      })();
+    }
     if (dataDir && !fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }
@@ -47,7 +75,23 @@ export class Store {
 
   // Persisted model blob (strain etc.). Returns {} if nothing saved yet.
   loadPersisted() {
-    if (!this.stateFile || !fs.existsSync(this.stateFile)) return {};
+    // Keep synchronous file-backed load for startup reliability. If Firestore
+    // is enabled we still try a background pull but do not block server init.
+    if (!this.stateFile || !fs.existsSync(this.stateFile)) {
+      // background Firestore pull (non-blocking)
+      if (this._useFirestore && this._fireInit) {
+        this._fireInit.then(async () => {
+          try {
+            const snap = await this._fireRef.get();
+            if (snap.exists) {
+              const data = snap.data();
+              try { fs.writeFileSync(this.stateFile, JSON.stringify(data)); } catch {}
+            }
+          } catch {}
+        }).catch(() => {});
+      }
+      return {};
+    }
     try {
       return JSON.parse(fs.readFileSync(this.stateFile, 'utf8'));
     } catch {
@@ -59,12 +103,19 @@ export class Store {
   savePersisted(blob) {
     if (!this.stateFile) return;
     if (this._saveTimer) return;
-    this._saveTimer = setTimeout(() => {
+    this._saveTimer = setTimeout(async () => {
       this._saveTimer = null;
       try {
         fs.writeFileSync(this.stateFile, JSON.stringify(blob));
-      } catch {
-        /* best-effort persistence */
+      } catch { /* best-effort persistence */ }
+      // also push to Firestore when configured (best-effort, async)
+      if (this._useFirestore && this._fireInit) {
+        try {
+          await this._fireInit;
+          if (this._fireRef) await this._fireRef.set(blob, { merge: true });
+        } catch {
+          /* ignore Firestore write errors */
+        }
       }
     }, 4000);
   }
