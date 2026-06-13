@@ -1,0 +1,139 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Shared chrome — always loaded, sits above whichever view is active.
+ * Holds the floating theme toggle + account control and the login modal, all
+ * driven by html[data-theme]. Namespaced with .rc- so it never collides with a
+ * view's own styles.
+ * ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --rc-panel: rgba(255, 255, 255, 0.82);
+  --rc-panel-solid: #ffffff;
+  --rc-ink: #232a36;
+  --rc-muted: #6b7480;
+  --rc-line: rgba(30, 40, 60, 0.1);
+  --rc-accent: #5b62d8;
+  --rc-accent-ink: #fff;
+  --rc-shadow: 0 14px 40px rgba(30, 42, 80, 0.16);
+  --rc-scrim: rgba(28, 34, 50, 0.42);
+}
+html[data-theme="dark"] {
+  --rc-panel: rgba(32, 35, 46, 0.86);
+  --rc-panel-solid: #232633;
+  --rc-ink: #e9e8f1;
+  --rc-muted: #9aa2b3;
+  --rc-line: rgba(255, 255, 255, 0.1);
+  --rc-accent: #b3a6e0;
+  --rc-accent-ink: #181b24;
+  --rc-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+  --rc-scrim: rgba(8, 10, 16, 0.6);
+}
+
+/* ── floating control cluster (top-right of every view) ─────────────────────── */
+.rc-controls {
+  position: fixed; top: 16px; right: 16px; z-index: 60;
+  display: flex; align-items: center; gap: 8px;
+}
+.rc-btn {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 600; color: var(--rc-ink);
+  background: var(--rc-panel); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid var(--rc-line); border-radius: 999px; padding: 8px 12px;
+  box-shadow: var(--rc-shadow); transition: transform .18s, border-color .2s, color .2s;
+}
+.rc-btn:hover { transform: translateY(-1px); border-color: var(--rc-accent); }
+.rc-icon-btn { padding: 8px; width: 38px; height: 38px; justify-content: center; }
+.rc-ico { width: 18px; height: 18px; display: block; }
+
+/* the theme button shows the icon for the *current preference* */
+.rc-theme .rc-ico-auto, .rc-theme .rc-ico-light, .rc-theme .rc-ico-dark { display: none; }
+html[data-theme-pref="auto"]  .rc-theme .rc-ico-auto  { display: block; }
+html[data-theme-pref="light"] .rc-theme .rc-ico-light { display: block; }
+html[data-theme-pref="dark"]  .rc-theme .rc-ico-dark  { display: block; }
+
+/* account chip */
+.rc-avatar {
+  width: 24px; height: 24px; border-radius: 50%; flex: none; object-fit: cover;
+  background: var(--rc-accent); color: var(--rc-accent-ink);
+  display: grid; place-items: center; font-size: 12px; font-weight: 700;
+}
+.rc-account .rc-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* account dropdown */
+.rc-menu {
+  position: fixed; top: 60px; right: 16px; z-index: 61; min-width: 220px;
+  background: var(--rc-panel-solid); border: 1px solid var(--rc-line);
+  border-radius: 16px; box-shadow: var(--rc-shadow); padding: 8px; color: var(--rc-ink);
+}
+.rc-menu[hidden] { display: none; }
+.rc-menu .rc-menu-head { padding: 10px 12px 12px; border-bottom: 1px solid var(--rc-line); margin-bottom: 6px; }
+.rc-menu .rc-menu-name { font-weight: 700; font-size: 14px; }
+.rc-menu .rc-menu-sub { color: var(--rc-muted); font-size: 12px; margin-top: 2px; word-break: break-all; }
+.rc-menu button {
+  width: 100%; text-align: left; cursor: pointer; font-family: inherit; font-size: 13.5px;
+  color: var(--rc-ink); background: none; border: none; border-radius: 10px; padding: 10px 12px;
+}
+.rc-menu button:hover { background: color-mix(in srgb, var(--rc-accent) 14%, transparent); }
+.rc-mode-tag { font-size: 10.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  color: var(--rc-muted); padding: 6px 12px 2px; }
+
+/* ── login modal ─────────────────────────────────────────────────────────────── */
+.rc-modal {
+  position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 18px;
+  background: var(--rc-scrim); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  animation: rc-fade .25s ease;
+}
+.rc-modal[hidden] { display: none; }
+@keyframes rc-fade { from { opacity: 0; } to { opacity: 1; } }
+.rc-card {
+  width: 100%; max-width: 400px; background: var(--rc-panel-solid);
+  border: 1px solid var(--rc-line); border-radius: 22px; box-shadow: var(--rc-shadow);
+  padding: 30px 28px 26px; color: var(--rc-ink); position: relative;
+  animation: rc-rise .3s cubic-bezier(.2,.8,.3,1);
+}
+@keyframes rc-rise { from { transform: translateY(14px); opacity: .6; } to { transform: none; opacity: 1; } }
+.rc-x { position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; border-radius: 50%;
+  border: none; background: none; color: var(--rc-muted); font-size: 20px; cursor: pointer; line-height: 1; }
+.rc-x:hover { background: color-mix(in srgb, var(--rc-ink) 8%, transparent); color: var(--rc-ink); }
+.rc-logo { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--rc-accent) 16%, transparent); margin-bottom: 14px; }
+.rc-logo span { width: 18px; height: 18px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #a7c8b4, #8fb4cf); }
+.rc-card h2 { margin: 0 0 4px; font-size: 21px; letter-spacing: -.3px; }
+.rc-card .rc-lede { margin: 0 0 18px; color: var(--rc-muted); font-size: 13.5px; }
+.rc-field { margin-bottom: 12px; }
+.rc-field label { display: block; font-size: 12px; color: var(--rc-muted); margin: 0 0 5px 2px; }
+.rc-field input {
+  width: 100%; font-family: inherit; font-size: 14.5px; color: var(--rc-ink);
+  background: color-mix(in srgb, var(--rc-ink) 4%, transparent);
+  border: 1px solid var(--rc-line); border-radius: 12px; padding: 11px 13px; transition: border-color .2s;
+}
+.rc-field input:focus { outline: none; border-color: var(--rc-accent); }
+.rc-name-row[hidden] { display: none; }
+.rc-primary {
+  width: 100%; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 650;
+  color: var(--rc-accent-ink); background: var(--rc-accent); border: none; border-radius: 12px;
+  padding: 13px; margin-top: 4px; transition: filter .2s, transform .15s;
+}
+.rc-primary:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.rc-primary:disabled { opacity: .6; cursor: default; transform: none; }
+.rc-or { display: flex; align-items: center; gap: 12px; color: var(--rc-muted); font-size: 12px; margin: 16px 0; }
+.rc-or::before, .rc-or::after { content: ""; flex: 1; height: 1px; background: var(--rc-line); }
+.rc-google {
+  width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: inherit; font-size: 14px; font-weight: 600; color: var(--rc-ink);
+  background: color-mix(in srgb, var(--rc-ink) 4%, transparent);
+  border: 1px solid var(--rc-line); border-radius: 12px; padding: 11px; transition: border-color .2s;
+}
+.rc-google:hover { border-color: var(--rc-accent); }
+.rc-foot { text-align: center; margin: 16px 0 0; font-size: 13px; color: var(--rc-muted); }
+.rc-foot a { color: var(--rc-accent); cursor: pointer; font-weight: 600; }
+.rc-ghost-link { display: block; width: 100%; text-align: center; margin-top: 12px; background: none; border: none;
+  color: var(--rc-muted); font-family: inherit; font-size: 13px; cursor: pointer; }
+.rc-ghost-link:hover { color: var(--rc-ink); }
+.rc-err { color: #d6584f; font-size: 13px; margin: 0 0 12px; min-height: 0; }
+.rc-err:empty { display: none; }
+.rc-mode-note { text-align: center; font-size: 11.5px; color: var(--rc-muted); margin-top: 14px; opacity: .85; }
+
+@media (max-width: 480px) {
+  .rc-account .rc-name { display: none; }
+  .rc-controls { top: 12px; right: 12px; }
+}

@@ -1,0 +1,20 @@
+Terms of Service
+
+Welcome to RestCue. By using the App you agree to these terms:
+
+1. Acceptance
+- Use of the App constitutes acceptance of these Terms and any future modifications.
+
+2. Use of service
+- The App is provided for personal, non-commercial use. You agree not to misuse the service.
+
+3. Accounts
+- If you sign up using Firebase Authentication, account management (credentials, password resets) is handled by the provider.
+
+4. Liability
+- The App is provided "as-is" for demonstration and personal use. The authors are not responsible for any decisions you take based on app output.
+
+5. Changes
+- These Terms may be updated; continued use constitutes acceptance of changes.
+
+Contact the project owner for questions.

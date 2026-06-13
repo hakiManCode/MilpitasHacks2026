@@ -31,6 +31,12 @@ function fitCanvas(canvas) {
   return { ctx, w, h };
 }
 
+// read a CSS custom property so the canvases follow the active theme
+function cssVar(name, fallback) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
+
 function strainColor(v) {
   if (v < 40) return '#2fb574';
   if (v < 70) return '#f5a623';
@@ -95,7 +101,7 @@ function drawGauge(strain) {
   // track
   ctx.beginPath();
   ctx.arc(cx, cy, r, start, start + sweep);
-  ctx.strokeStyle = '#e8ecf4';
+  ctx.strokeStyle = cssVar('--track', '#e8ecf4');
   ctx.lineWidth = 14;
   ctx.lineCap = 'round';
   ctx.stroke();
@@ -114,7 +120,7 @@ function drawMainChart() {
   const { ctx, w, h } = fitCanvas(canvas);
   ctx.clearRect(0, 0, w, h);
   // gridlines for strain 0/50/100
-  ctx.strokeStyle = '#eef1f7';
+  ctx.strokeStyle = cssVar('--grid', '#eef1f7');
   ctx.lineWidth = 1;
   for (const frac of [0, 0.5, 1]) {
     const yy = 6 + (1 - frac) * (h - 12);
@@ -314,11 +320,45 @@ function gasToScore(gas) {
   return Math.round(clamp(((Math.log10(gas) - lo) / (hi - lo)) * 100, 0, 100));
 }
 
+function pollState() {
+  let active = true;
+  const conn = $('conn');
+  async function tick() {
+    if (!active) return;
+    try {
+      const { state } = await (await fetch('/api/state')).json();
+      if (state) {
+        conn.className = 'conn ok';
+        conn.innerHTML = '<i class="dot"></i>connected';
+        render(state);
+        redrawAll();
+      }
+    } catch {
+      conn.className = 'conn off';
+      conn.innerHTML = '<i class="dot"></i>reconnecting…';
+    }
+    if (active) setTimeout(tick, 2500);
+  }
+  tick();
+  return () => { active = false; };
+}
+
 function connect() {
   const conn = $('conn');
-  const es = new EventSource('/api/stream');
+  if (!window.EventSource) return pollState();
+  let pollCancel = null;
+  let es;
+  try {
+    es = new EventSource('/api/stream');
+  } catch {
+    return pollState();
+  }
   es.onopen = () => { conn.className = 'conn ok'; conn.innerHTML = '<i class="dot"></i>connected'; };
-  es.onerror = () => { conn.className = 'conn off'; conn.innerHTML = '<i class="dot"></i>reconnecting…'; };
+  es.onerror = () => {
+    conn.className = 'conn off';
+    conn.innerHTML = '<i class="dot"></i>reconnecting…';
+    if (!pollCancel) pollCancel = pollState();
+  };
   es.onmessage = (ev) => {
     let s;
     try { s = JSON.parse(ev.data); } catch { return; }
@@ -327,6 +367,10 @@ function connect() {
     pushPress(s.env?.pressure ?? null);
     render(s);
     redrawAll();
+  };
+  return () => {
+    es.close();
+    if (pollCancel) pollCancel();
   };
 }
 
@@ -344,4 +388,6 @@ async function init() {
 }
 
 window.addEventListener('resize', () => requestAnimationFrame(redrawAll));
+// recolour the canvases when light/dark flips
+window.RestCueTheme?.onChange(() => requestAnimationFrame(redrawAll));
 init();

@@ -143,10 +143,40 @@ $('openBreath').addEventListener('click', () => breathing.start(currentPattern))
 $('breathClose').addEventListener('click', () => breathing.stop());
 
 // ── live data ─────────────────────────────────────────────────────────────────
+function pollState() {
+  let active = true;
+  async function tick() {
+    if (!active) return;
+    try {
+      const { state } = await (await fetch('/api/state')).json();
+      if (state) applyState(state);
+    } catch {
+      /* ignore transient errors */
+    }
+    if (active) setTimeout(tick, 2500);
+  }
+  tick();
+  return () => { active = false; };
+}
+
 function connect() {
-  const es = new EventSource('/api/stream');
+  if (!window.EventSource) return pollState();
+  let pollCancel = null;
+  let es;
+  try {
+    es = new EventSource('/api/stream');
+  } catch {
+    return pollState();
+  }
   es.onmessage = (ev) => {
     try { applyState(JSON.parse(ev.data)); } catch { /* ignore malformed frame */ }
+  };
+  es.onerror = () => {
+    if (!pollCancel) pollCancel = pollState();
+  };
+  return () => {
+    es.close();
+    if (pollCancel) pollCancel();
   };
 }
 

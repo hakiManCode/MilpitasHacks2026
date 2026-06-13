@@ -1,0 +1,13 @@
+{
+  "name": "milpitashacks2026",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "cd server && npm run dev",
+    "start": "cd server && npm start"
+  },
+  "workspaces": [
+    "server"
+  ]
+}

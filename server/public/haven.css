@@ -21,8 +21,8 @@
   --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-.haven.evening {
-  /* night / winding-down: warm, dim, restful */
+html[data-theme="dark"] body.haven {
+  /* night / dark mode: warm, dim, restful */
   --bg-1: #191c22;
   --bg-2: #1e212b;
   --bg-3: #221f2b;

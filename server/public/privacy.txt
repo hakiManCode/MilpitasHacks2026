@@ -1,0 +1,20 @@
+Privacy Policy
+
+RestCue (the "App") respects your privacy. This simple privacy notice describes what information the App may collect (if any), how it is used, and the controls you have.
+
+1. Information collected
+- Authentication: When you sign in with Google or create an account, authentication is managed by Firebase Authentication. We do not collect or store your password; Firebase manages credentials.
+- Optional profile info: your display name, email address, and profile photo provided by your identity provider.
+
+2. How we use data
+- To identify you and associate your saved check-ins and preferences with your account.
+- To provide and improve the App's features and to restore your data across devices.
+
+3. Third-party services
+- Authentication is handled by Google/Firebase. Please review their privacy policies for details on how they process your data.
+
+4. Data retention
+- Account profile data is retained as long as your account exists. Local demo accounts are stored in your browser's localStorage and can be removed by clearing site data.
+
+5. Contact
+- For questions about privacy, contact the project owner.

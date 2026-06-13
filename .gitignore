@@ -11,3 +11,6 @@ firmware/**/config.h
 .DS_Store
 *.log
 .vscode/
+
+# Vercel
+.vercel/

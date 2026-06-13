@@ -16,8 +16,40 @@
   --accent-soft: rgba(79, 86, 224, 0.12);
   --radius: 24px;
   --shadow: 0 14px 34px rgba(40, 52, 90, 0.08);
+  --track: #e8ecf4;   /* gauge track / canvas neutral (read by dashboard.js) */
+  --grid: #eef1f7;    /* chart gridlines (read by dashboard.js) */
   font-synthesis: none;
 }
+
+/* dark theme — driven by the shared theme controller */
+html[data-theme="dark"] {
+  --bg0: #14161d;
+  --bg1: #181b24;
+  --surface: #21242f;
+  --surface-2: #1b1e28;
+  --line: #2c303c;
+  --text: #e9e8f1;
+  --muted: #99a1b2;
+  --muted-2: #6f7787;
+  --good: #45c98a;
+  --warn: #f0b54a;
+  --bad: #f0716a;
+  --sleep: #a99cf0;
+  --accent: #b3a6e0;
+  --accent-soft: rgba(179, 166, 224, 0.16);
+  --shadow: 0 18px 46px rgba(0, 0, 0, 0.5);
+  --track: #2c303c;
+  --grid: #262a35;
+}
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(1200px 700px at 85% -10%, rgba(179, 166, 224, 0.1), transparent 60%),
+    radial-gradient(1000px 700px at 0% 110%, rgba(127, 174, 142, 0.08), transparent 55%),
+    linear-gradient(180deg, var(--bg1), var(--bg0));
+}
+html[data-theme="dark"] .badge-sim { background: rgba(169, 156, 240, 0.16); color: var(--sleep); border-color: rgba(169, 156, 240, 0.34); }
+html[data-theme="dark"] input[type="range"]::-webkit-slider-thumb { background: var(--surface); }
+html[data-theme="dark"] input[type="range"]::-moz-range-thumb { background: var(--surface); }
 
 * { box-sizing: border-box; }
 
