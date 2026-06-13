@@ -1,5 +1,6 @@
 {
   "version": 3,
+  "installCommand": "cd server && npm install",
   "functions": {
     "api/index.js": {
       "runtime": "nodejs18.x"
