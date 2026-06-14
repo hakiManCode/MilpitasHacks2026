@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "Breakpoint — burnout / anxiety breaking-point predictor fed by an ESP32 + Adafruit BME688.",
   "type": "module",
-  "main": "server/index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "node --watch server/index.js"
+    "start": "node server.js",
+    "dev": "node --watch server.js"
   },
   "engines": {
     "node": ">=18"
