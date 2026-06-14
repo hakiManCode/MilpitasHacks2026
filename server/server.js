@@ -22,6 +22,8 @@ let lastHardwareAt = 0;
 
 const app = express();
 app.use(express.json({ limit: '64kb' }));
+// Serve canonical favicon — handle /favicon.ico requests.
+app.get('/favicon.ico', (req, res) => res.redirect('/faviconmh26.png'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Single page (public/index.html) hosts both the calm "Haven" view and the
