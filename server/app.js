@@ -24,6 +24,8 @@ let lastHardwareAt = 0;
 
 const app = express();
 app.use(express.json({ limit: '64kb' }));
+// Serve canonical favicon — redirect browsers requesting /favicon.ico
+app.get('/favicon.ico', (req, res) => res.redirect('/faviconmh26.png'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 function decorate(state) {
